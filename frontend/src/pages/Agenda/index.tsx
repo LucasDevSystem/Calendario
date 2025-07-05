@@ -36,6 +36,7 @@ function getAvailableSlots(
 }
 
 const serviceOptions = [{ label: "Orçamento", value: "Orçamento" }];
+const API_URL = 'https://calendario-s0ni.onrender.com/api';
 
 export const Agenda: React.FC = () => {
   const today = new Date();
@@ -51,7 +52,7 @@ export const Agenda: React.FC = () => {
   const getEvents = async () => {
     setIsLoading(true);
     try {
-      const result = await fetch("http://localhost:4000/api/get-events");
+      const result = await fetch(`${API_URL}/get-events`);
       const data = await result.json();
       setApiEvents(data);
     } catch (error) {
@@ -97,13 +98,16 @@ export const Agenda: React.FC = () => {
         end,
       };
 
-      const result = await fetch("http://localhost:4000/api/create-event", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const result = await fetch(
+        `${API_URL}/create-event`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!result.ok) throw new Error("Erro ao agendar");
 
@@ -171,7 +175,7 @@ export const Agenda: React.FC = () => {
         }}
         onOk={async () => {
           try {
-            const values = await form.validateFields();
+            await form.validateFields();
             await onSchedule();
 
             setIsModalVisible(false);

@@ -10,11 +10,7 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
+app.use(cors());
 app.use(bodyParser.json());
 
 app.post("/api/create-event", async (req, res) => {

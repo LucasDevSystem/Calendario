@@ -1,21 +1,8 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import {
-  Button,
-  Row,
-  Col,
-  Typography,
-  Space,
-  Grid,
-  Modal,
-  Select,
-  Form,
-  Card,
-  Input,
-  message,
-} from "antd";
+import React, { useRef, useEffect, useMemo } from "react";
+import { Button, Row, Col, Typography, Space, Grid } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { addDays, format, isSameDay } from "date-fns";
-import { da, ptBR } from "date-fns/locale";
+import { ptBR } from "date-fns/locale";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
