@@ -17,9 +17,9 @@ app.post("/api/create-event", async (req, res) => {
   const { summary, description, start, end } = req.body;
 
   try {
-    await createIcloudEvent(summary, description, start, end);
+    const result = await createIcloudEvent(summary, description, start, end);
 
-    res.json({ success: true });
+    res.json({ result });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao criar evento" });
