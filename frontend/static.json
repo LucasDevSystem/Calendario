@@ -1,0 +1,13 @@
+{
+  "headers": {
+    "/**": {
+      "Cache-Control": "no-cache"
+    }
+  },
+  "redirects": [
+    {
+      "source": "**",
+      "destination": "/index.html"
+    }
+  ]
+}
