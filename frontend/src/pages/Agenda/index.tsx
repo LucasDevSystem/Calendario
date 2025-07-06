@@ -161,7 +161,7 @@ export const Agenda: React.FC = () => {
     );
 
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: 4 }}>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: 0 }}>
       <Modal
         open={isModalVisible}
         title={`Você está agendando para ${selectedSlot?.label}`}

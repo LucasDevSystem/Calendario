@@ -89,7 +89,7 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
 
   return (
     <div
-      style={{ maxWidth: 800, margin: "0 auto", padding: 24, paddingTop: 0 }}
+      style={{ maxWidth: 800, margin: "0 auto", padding: 0, paddingTop: 0 }}
     >
       <Space
         direction="vertical"
@@ -121,7 +121,6 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
             icon={<LeftOutlined />}
             onClick={() => onSelectDate(addDays(selectedDate, -1))}
           />
-
           <div
             ref={containerRef}
             style={{
