@@ -37,7 +37,7 @@ function getAvailableSlots(
 }
 
 const serviceOptions = [{ label: "Orçamento", value: "Orçamento" }];
-const API_URL = 'https://calendario-s0ni.onrender.com/api';
+const API_URL = "https://calendario-s0ni.onrender.com/api";
 
 export const Agenda: React.FC = () => {
   const today = new Date();
@@ -176,9 +176,9 @@ export const Agenda: React.FC = () => {
             await form.validateFields();
             await onSchedule();
 
-            // setIsModalVisible(false);
-            // form.resetFields();
-            // setSelectedService(null);
+            setIsModalVisible(false);
+            form.resetFields();
+            setSelectedService(null);
             message.success("Agendamento realizado com sucesso!");
           } catch {
             message.warning("Preencha todos os campos corretamente.");
