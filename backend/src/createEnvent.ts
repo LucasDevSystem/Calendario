@@ -9,8 +9,8 @@ export async function createIcloudEvent(
   start,
   end
 ) {
-  if (!password || username) return;
-
+  if (!password || !username) return;
+  
   const client = await CalDAVClient.create({
     baseUrl: "https://caldav.icloud.com",
     auth: {

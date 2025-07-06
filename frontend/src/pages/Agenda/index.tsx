@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Modal, Form, Card, Input, message, Spin } from "antd";
 import { TimeSlotSelector } from "./TimeSlot";
+import { useNavigate } from "react-router-dom";
 
 type Slot = { label: string; hour: number; minute: number };
 
@@ -48,6 +49,7 @@ export const Agenda: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const getEvents = async () => {
     setIsLoading(true);
@@ -98,16 +100,13 @@ export const Agenda: React.FC = () => {
         end,
       };
 
-      const result = await fetch(
-        `${API_URL}/create-event`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const result = await fetch(`${API_URL}/create-event`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
       if (!result.ok) throw new Error("Erro ao agendar");
 
@@ -119,8 +118,7 @@ export const Agenda: React.FC = () => {
         })
       );
 
-      // Redireciona para a tela de confirmação
-      window.location.href = "/confirmacao";
+      navigate("/confirmacao");
       getEvents();
     } catch (error) {}
   };
@@ -178,9 +176,9 @@ export const Agenda: React.FC = () => {
             await form.validateFields();
             await onSchedule();
 
-            setIsModalVisible(false);
-            form.resetFields();
-            setSelectedService(null);
+            // setIsModalVisible(false);
+            // form.resetFields();
+            // setSelectedService(null);
             message.success("Agendamento realizado com sucesso!");
           } catch {
             message.warning("Preencha todos os campos corretamente.");
