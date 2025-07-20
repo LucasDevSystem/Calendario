@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Modal, Form, Card, Input, message, Spin } from "antd";
 import { TimeSlotSelector } from "./TimeSlot";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 type Slot = { label: string; hour: number; minute: number };
 
@@ -64,6 +65,7 @@ const serviceOptions = [
 ];
 
 const API_URL = "https://calendario-s0ni.onrender.com/api";
+const WHATSAPP_NUMBER = "5531988056869";
 
 export const Agenda: React.FC = () => {
   const today = new Date();
@@ -72,10 +74,11 @@ export const Agenda: React.FC = () => {
   const [apiEvents, setApiEvents] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [spinMessage, setSpinMessage] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const getEvents = async () => {
     setIsLoading(true);
@@ -124,6 +127,7 @@ export const Agenda: React.FC = () => {
 
   const onSchedule = async () => {
     try {
+      setIsLoading(true);
       const { hour = 0, minute = 0 } = selectedSlot || {};
 
       // Usa a mesma lógica de buildSlotIso para garantir UTC correto
@@ -151,25 +155,27 @@ export const Agenda: React.FC = () => {
       });
 
       if (!result.ok) throw new Error("Erro ao agendar");
+      message.success("Agendamento realizado com sucesso!");
 
-      // Armazena agendamento no localStorage
-      localStorage.setItem(
-        "agendamento",
-        JSON.stringify({
-          summary: `${selectedService} ${form.getFieldValue("nome")}`,
-          service: selectedService,
-          name: form.getFieldValue("nome"),
-          description: `Celular: ${form.getFieldValue(
-            "telefone"
-          )}. Agendado Online`,
-          start,
-          end,
-        })
-      );
+      const startDate = new Date(start);
+      const parsedDate = new Date(startDate.setHours(startDate.getHours() + 3));
 
-      navigate("/confirmacao");
-      getEvents();
-    } catch (error) {}
+      const mensagem = `Agendei um ${selectedService} às ${format(
+        parsedDate,
+        "HH:mm"
+      )} do dia ${format(parsedDate, "dd/MM/yyyy")}`;
+      const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+        mensagem
+      )}`;
+      setSpinMessage("✅ Agendamento Confirmado!");
+
+      // Redireciona após 4 segundos
+      setTimeout(() => {
+        window.location.href = link;
+      }, 1000);
+    } catch (error) {
+      setIsLoading(false);
+    }
   };
 
   const allSlots = getAvailableSlots(slots, apiEvents, new Date(selectedDate));
@@ -219,7 +225,7 @@ export const Agenda: React.FC = () => {
           width: "100%",
         }}
       >
-        <Spin size="large" />
+        <Spin size="large">{spinMessage}</Spin>
       </div>
     );
 
@@ -247,8 +253,8 @@ export const Agenda: React.FC = () => {
 
           // Tudo certo, pode agendar
           await onSchedule();
-          setIsModalVisible(false);
-          form.resetFields();
+          // setIsModalVisible(false);
+          // form.resetFields();
           setSelectedService(null);
           message.success("Agendamento realizado com sucesso!");
         }}
