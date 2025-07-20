@@ -11,7 +11,7 @@ function buildSlotIso(date: Date, hour: number, minute: number = 0): string {
       date.getFullYear(),
       date.getMonth(),
       date.getDate(),
-      hour + 3,
+      hour,
       minute,
       0,
       0
@@ -29,14 +29,40 @@ function getAvailableSlots(
     const slotIso = buildSlotIso(date, slot.hour, slot.minute);
 
     const isConflicting = events.some((event) => {
-      return slotIso >= event.start && slotIso < event.end;
+      const startDate = new Date(event.start);
+      startDate.setMinutes(0, 0, 0); // zera os minutos, segundos e ms
+
+      const endDate = new Date(event.end);
+      if (endDate.getMinutes() > 0 || endDate.getSeconds() > 0) {
+        endDate.setHours(endDate.getHours() + 1, 0, 0, 0); // arredonda pra cima
+      } else {
+        endDate.setMinutes(0, 0, 0); // garante que também esteja limpo
+      }
+
+      return (
+        slotIso >= startDate.toISOString() && slotIso < endDate.toISOString()
+      );
     });
 
     return !isConflicting;
   });
 }
 
-const serviceOptions = [{ label: "Orçamento", value: "Orçamento" }];
+const serviceOptions = [
+  {
+    label: "Orçamento",
+    value: "Orçamento",
+    image:
+      "https://cdn.cobrefacil.com.br/website/base/c57/874/c9c/como-fazer-orcamento.jpg",
+  },
+  {
+    label: "Teste",
+    value: "Teste",
+    image:
+      "https://lh3.googleusercontent.com/gps-cs-s/AC9h4noO_jRfnx6xUjO8dT4TDfesNDfzBCZKvn5K0ca_wQ7CbfZX-WbSZ3qE5TJUaixLipR2YNnAbji5G-zwg8WfWMRU7GFeKgW3aNJ67M9YwM5ska41bgi2_UBIId1T4_V_gJomWm0=s680-w680-h510-rw",
+  },
+];
+
 const API_URL = "https://calendario-s0ni.onrender.com/api";
 
 export const Agenda: React.FC = () => {
@@ -67,35 +93,51 @@ export const Agenda: React.FC = () => {
     getEvents();
   }, []);
 
-  const slots: Slot[] = useMemo(() => {
+  const slots = useMemo(() => {
     const arr: Slot[] = [];
     const hours = [6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19];
+    const now = new Date();
+
+    // Função auxiliar para comparar só dia/mês/ano
+    const isSameDay = (d1: Date, d2: Date) =>
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate();
 
     for (const h of hours) {
-      arr.push({
-        label: `${String(h).padStart(2, "0")}:00`,
-        hour: h,
-        minute: 0,
-      });
+      if (
+        // Se for hoje, só adiciona horários maiores que a hora atual
+        (isSameDay(selectedDate, now) && h > now.getHours()) ||
+        // Se for outro dia (futuro), adiciona todos os horários
+        selectedDate > now
+      ) {
+        arr.push({
+          label: `${String(h).padStart(2, "0")}:00`,
+          hour: h,
+          minute: 0,
+        });
+      }
     }
+
     return arr;
-  }, []);
+  }, [selectedDate]);
 
   const onSchedule = async () => {
     try {
       const { hour = 0, minute = 0 } = selectedSlot || {};
 
-      // Cria a data inicial com hora do slot
-      const start = new Date(selectedDate);
-      start.setHours(hour, minute, 0, 0);
+      // Usa a mesma lógica de buildSlotIso para garantir UTC correto
+      const startIso = buildSlotIso(selectedDate, hour, minute);
+      const start = new Date(startIso);
 
-      // Cria a data final com +1 hora
       const end = new Date(start);
-      end.setHours(start.getHours() + 1);
+      end.setHours(end.getHours() + 1); // adiciona 1h no UTC direto
 
       const data = {
         summary: `${selectedService} ${form.getFieldValue("nome")}`,
-        description: `Celular: ${form.getFieldValue("nome")}. Agendado Online`,
+        description: `Celular: ${form.getFieldValue(
+          "telefone"
+        )}. Agendado Online`,
         start,
         end,
       };
@@ -114,7 +156,14 @@ export const Agenda: React.FC = () => {
       localStorage.setItem(
         "agendamento",
         JSON.stringify({
-          date: start.toISOString(),
+          summary: `${selectedService} ${form.getFieldValue("nome")}`,
+          service: selectedService,
+          name: form.getFieldValue("nome"),
+          description: `Celular: ${form.getFieldValue(
+            "telefone"
+          )}. Agendado Online`,
+          start,
+          end,
         })
       );
 
@@ -124,22 +173,36 @@ export const Agenda: React.FC = () => {
   };
 
   const allSlots = getAvailableSlots(slots, apiEvents, new Date(selectedDate));
-
   const renderServiceCards = () => (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
       {serviceOptions.map((service) => (
         <Card
           key={service.value}
           onClick={() => setSelectedService(service.value)}
-          style={{
-            width: 120,
-            cursor: "pointer",
-            borderColor:
-              selectedService === service.value ? "#1890ff" : "#f0f0f0",
-          }}
           hoverable
+          cover={
+            <img
+              alt={service.label}
+              src={service.image}
+              style={{
+                height: 80,
+                objectFit: "cover",
+              }}
+            />
+          }
+          style={{
+            width: 140,
+            cursor: "pointer",
+            border:
+              selectedService === service.value
+                ? "2px solid #1890ff"
+                : "1px solid #f0f0f0",
+            borderRadius: 6,
+          }}
         >
-          <div style={{ textAlign: "center" }}>{service.label}</div>
+          <div style={{ textAlign: "center", fontSize: 14 }}>
+            {service.label}
+          </div>
         </Card>
       ))}
     </div>
@@ -172,17 +235,22 @@ export const Agenda: React.FC = () => {
           form.resetFields();
         }}
         onOk={async () => {
-          try {
-            await form.validateFields();
-            await onSchedule();
+          const hasErrors = await form
+            .validateFields()
+            .then(() => false)
+            .catch(() => true);
 
-            setIsModalVisible(false);
-            form.resetFields();
-            setSelectedService(null);
-            message.success("Agendamento realizado com sucesso!");
-          } catch {
+          if (hasErrors) {
             message.warning("Preencha todos os campos corretamente.");
+            return; // Evita prosseguir
           }
+
+          // Tudo certo, pode agendar
+          await onSchedule();
+          setIsModalVisible(false);
+          form.resetFields();
+          setSelectedService(null);
+          message.success("Agendamento realizado com sucesso!");
         }}
         okText="Confirmar Agendamento"
         cancelText="Cancelar"
